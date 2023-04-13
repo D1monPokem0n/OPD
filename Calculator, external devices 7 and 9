@@ -1,0 +1,223 @@
+org 0xA
+minus: word 0x100
+plus: word 0x200
+div: word 0x300
+multiply: word 0x400
+mod: word 0x500
+equals: word 0x600
+func: word 0x0
+func1: word 0x0
+func2: word 0x0
+
+start: cla
+push
+push
+loop1: in 0x1d
+and #0x40
+beq loop1
+in 0x1c
+cmp #0xA
+bmi inNum1
+st func1
+loop2: in 0x1d
+and #0x40
+beq loop2
+in 0x1c
+cmp #0xA
+bmi inNum2
+st func2
+ld (func1)
+st func
+call (func)
+pop
+cla
+push
+ld func2
+cmp #0xF
+beq equalsout
+st func1
+jump loop2
+equalsout: ld (func2)
+st func
+call (func)
+
+res1: word 0x0
+figure1: word 0x0
+inNum1: st figure1
+ld (sp+1)
+asl
+st res1
+ld (sp+1)
+asl
+asl
+asl
+add res1
+st res1
+ld figure1
+add res1
+st (sp+1)
+jump loop1
+
+res2: word 0x0
+figure2: word 0x0
+inNum2: st figure2
+ld (sp+0)
+asl
+st res2
+ld (sp+0)
+asl
+asl
+asl
+add res2
+st res2
+ld figure2
+add res2
+st (sp+0)
+jump loop2
+
+org 0x100
+ld (sp+2)
+sub (sp+1)
+st (sp+2)
+ret
+
+org 0x200
+ld (sp+2)
+add (sp+1)
+st (sp+2)
+ret
+
+org 0x2FF
+divcount: word 0x0
+cla
+st divcount
+divloop: ld (sp+2)
+cmp (sp+1)
+bmi divdone
+sub (sp+1)
+st (sp+2)
+ld divcount
+inc
+st divcount
+jump divloop
+divdone: ld divcount
+st (sp+2)
+ret
+
+org 0x3FD
+multiplyres: word 0x0
+multiplynum2: word 0x0
+multiplynum1: word 0x0
+cla
+st multiplyres
+ld (sp+2)
+st multiplynum1
+ld (sp+1)
+st multiplynum2
+jump startmulty
+multy: ld multiplynum1
+asl
+st multiplynum1 
+startmulty: ld multiplynum2
+beq quitmulty
+asr
+st multiplynum2
+bcs plusmulty
+jump multy
+plusmulty: ld multiplyres
+add multiplynum1
+st multiplyres
+jump multy
+quitmulty: ld multiplyres
+st (sp+2)
+ret
+
+org 0x500
+modloop: ld (sp+2)
+cmp (sp+1)
+bmi moddone
+sub (sp+1)
+st (sp+2)
+jump modloop
+moddone: ret
+
+org 0x5FF
+outword: word 0x0
+ld (sp+2)
+st outword
+bmi negNum
+sout4: ld outword
+cmp ten4
+bmi sout3
+sub ten4
+st outword
+ld ten4count
+inc
+st ten4count
+jump sout4
+sout3: ld outword
+cmp ten3
+bmi sout2
+sub ten3
+st outword
+ld ten3count
+inc
+st ten3count
+jump sout3
+sout2: ld outword
+cmp ten2
+bmi sout1
+sub ten2
+st outword
+ld ten2count
+inc
+st ten2count
+jump sout2
+sout1: ld outword
+cmp ten1
+bmi sout0
+sub ten1
+st outword
+ld ten1count
+inc
+st ten1count
+jump sout1
+sout0: ld outword
+cmp ten0
+bmi convertingDone
+sub ten0
+st outword
+ld ten0count
+inc
+st ten0count
+jump sout0
+convertingDone: ld position
+dec
+asl
+asl
+asl
+asl
+add (tencount)+
+out 0x14
+loop position
+jump convertingDone
+hlt
+negNum: ld outword
+neg
+st outword
+ld #0x7A
+out 0x14
+jump sout4
+tencount: word 0x660
+position: word 0x5
+ten0: word 0x1
+ten1: word 0xA
+ten2: word 0x64
+ten3: word 0x3E8
+ten4: word 0x2710
+org 0x660
+ten4count: word 0x0
+ten3count: word 0x0
+ten2count: word 0x0
+ten1count: word 0x0
+ten0count: word 0x0
